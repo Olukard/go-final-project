@@ -10,6 +10,11 @@ func main() {
 	//добавить выбор порта
 	port := ":7540"
 
+	//проверяем наличие базы данных
+	if !checkDBexists() {
+		CreateDB()
+	}
+
 	fileServer := http.FileServer(http.Dir("./web"))
 
 	http.Handle("/", fileServer)
@@ -19,6 +24,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	fmt.Println("Завершаем работу")
 
 }
