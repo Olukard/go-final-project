@@ -31,12 +31,8 @@ func checkDBexists() bool {
 		log.Fatal(err)
 	}
 
-	fmt.Println(appPath)
-
 	dbFile := filepath.Join(filepath.Dir(appPath), "scheduler.db")
 	_, err = os.Stat(dbFile)
-
-	fmt.Println(dbFile)
 
 	return err == nil
 }
@@ -56,8 +52,13 @@ func CreateDB() {
 		log.Fatal(err)
 	}
 
+	fmt.Println("База данных создана, проводим индексацию...")
+
 	_, err = db.Exec(DBindexCommand)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	fmt.Println("Индексация завершена.")
+
 }
