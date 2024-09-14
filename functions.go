@@ -20,7 +20,7 @@ const DBinitCommand = `
 	);`
 
 const DBindexCommand = `
-	CREATE INDEX id_indx ON scheduler (id)
+	CREATE INDEX id_indx ON scheduler (date)
 	`
 
 //checkDBexists проверяет существование файла базы данных в директории проекта
