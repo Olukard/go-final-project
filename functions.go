@@ -10,7 +10,20 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-//Функция проверки существования файла базы данных
+const DBinitCommand = `
+	CREATE TABLE IF NOT EXISTS scheduler (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	date DATE, 
+	title VARCHAR(256),
+	comment VARCHAR(256),
+	repeat VARCHAR(128)
+	);`
+
+const DBindexCommand = `
+	CREATE INDEX id_indx ON scheduler (id)
+	`
+
+//checkDBexists проверяет существование файла базы данных в директории проекта
 
 func checkDBexists() bool {
 	appPath, err := os.Executable()
@@ -28,17 +41,9 @@ func checkDBexists() bool {
 	return err == nil
 }
 
-//функция создания базы данных
+//CreateDB создает файл базы данных с индексакцией в соотвествии с заданными константами DBinitCommand и DBindexCommand
 
 func CreateDB() {
-	DBinitCommand := `
-	CREATE TABLE IF NOT EXISTS scheduler (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	date DATE, 
-	title VARCHAR(256),
-	comment VARCHAR(256),
-	repeat VARCHAR(128)
-	);`
 
 	db, err := sql.Open("sqlite3", "./scheduler.db")
 	if err != nil {
@@ -47,6 +52,11 @@ func CreateDB() {
 	defer db.Close()
 
 	_, err = db.Exec(DBinitCommand)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = db.Exec(DBindexCommand)
 	if err != nil {
 		log.Fatal(err)
 	}
