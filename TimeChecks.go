@@ -28,9 +28,12 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 Запрошенный перенос: %d. Допустимый лимит: %d`, days, DayLimit)
 		}
 		nextDate := taskDate.AddDate(0, 0, days)
-		return nextDate.Format("20060102"), nil
 
-		//реализовать рекурсию, если дата ниже текущей?
+		if nextDate.Before(now) {
+			return NextDate(now, nextDate.Format("20060102"), repeat)
+		}
+
+		return nextDate.Format("20060102"), nil
 
 	case "y":
 		years, err := strconv.Atoi(repeat[2:])
@@ -39,6 +42,11 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 		}
 
 		nextDate := taskDate.AddDate(years, 0, 0)
+
+		if nextDate.Before(now) {
+			return NextDate(now, nextDate.Format("20060102"), repeat)
+		}
+
 		return nextDate.Format("20060102"), nil
 
 	case "w", "m":
