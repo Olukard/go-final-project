@@ -21,6 +21,9 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 
 	switch string(repeat[0]) {
 	case "d":
+		if len(repeat) < 3 {
+			return "", fmt.Errorf("ошибка формата правила повторения")
+		}
 		days, err := strconv.Atoi(repeat[2:])
 		if err != nil {
 			return "", fmt.Errorf("ошибка формата правила повторения")
