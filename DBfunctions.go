@@ -1,5 +1,7 @@
 package main
 
+//привести ошибки к единому формату
+
 import (
 	"database/sql"
 	"fmt"
@@ -60,5 +62,28 @@ func CreateDB() {
 	}
 
 	fmt.Println("Индексация завершена.")
+
+}
+
+func insertIntoDB(task Task) (int, error) {
+	db, err := sql.Open("sqlite3", "./scheduler.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	result, err := db.Exec("INSERT INTO scheduler (date, title, comment, repeat) VALUES (?, ?, ?, ?)", task.Date, task.Title, task.Date, task.Repeat)
+	if err != nil {
+		log.Fatal(err)
+		return 0, err
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		log.Fatal(err)
+		return 0, err
+	}
+
+	return int(id), nil
 
 }
