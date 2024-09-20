@@ -12,7 +12,7 @@ type Task struct {
 	Date    string `json:"date"`
 	Title   string `json:"title"`
 	Comment string `json:"comment"`
-	Repeat  string `json:"string"`
+	Repeat  string `json:"repeat"`
 }
 
 type AddTaskResponse struct {
@@ -56,28 +56,73 @@ func nextDateHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
+
+	//обозначаем структуры
 	var task Task
 	var buf bytes.Buffer
 
+	//устанавливаем заголовок
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	//читаем тело запроса
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
-		http.Error(w, "Ошибка чтения запроса", http.StatusBadRequest)
-		return
-	}
-	if err = json.Unmarshal(buf.Bytes(), &task); err != nil {
-		http.Error(w, "Ошибка декодирования json", http.StatusBadRequest)
+		response := AddTaskResponse{Error: "Ошибка чтения запроса"}
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 
-	if task.Title == "" {
-		http.Error(w, "Заголовок задачи не может быть пустым", http.StatusBadRequest)
+	//декодируем json
+	if err = json.Unmarshal(buf.Bytes(), &task); err != nil {
+		response := AddTaskResponse{Error: "Ошибка декодирования json"}
+		json.NewEncoder(w).Encode(response)
 		return
+	}
+
+	//проверяем наличие заголовка запроса
+	if task.Title == "" {
+		response := AddTaskResponse{Error: "Заголовок задачи не может быть пустым"}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	today := time.Now()
+
+	// Проверяем дату задачи на пустое значение
+	if task.Date == "" {
+		task.Date = today.Format("20060102")
+	} else {
+		// Проверяем парсится ли дата
+		dueDate, err := time.Parse("20060102", task.Date)
+		if err != nil {
+			response := AddTaskResponse{Error: "Неверный формат даты"}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+
+		// Проверяем, не раньше ли дата, чем сегодня
+		if dueDate.Before(today) {
+			// Если дата раньше, вычисляем следующую дату
+			if task.Repeat != "" {
+				nextDueDate, err := NextDate(today, task.Date, task.Repeat)
+				if err != nil {
+					response := AddTaskResponse{Error: "Неверный формат правила повторения"}
+					json.NewEncoder(w).Encode(response)
+					return
+				}
+				task.Date = nextDueDate
+			} else {
+				task.Date = today.Format("20060102")
+			}
+		}
 	}
 
 	id, err := insertIntoDB(task)
 	if err != nil {
-		http.Error(w, "Ошибка добавления в базу данных", http.StatusBadRequest)
+		response := AddTaskResponse{Error: "Ошибка добавления в базу данных"}
+		json.NewEncoder(w).Encode(response)
 		return
+
 	}
 	response := AddTaskResponse{ID: id}
 	json.NewEncoder(w).Encode(response)

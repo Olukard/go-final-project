@@ -72,7 +72,7 @@ func insertIntoDB(task Task) (int, error) {
 	}
 	defer db.Close()
 
-	result, err := db.Exec("INSERT INTO scheduler (date, title, comment, repeat) VALUES (?, ?, ?, ?)", task.Date, task.Title, task.Date, task.Repeat)
+	result, err := db.Exec("INSERT INTO scheduler (date, title, comment, repeat) VALUES (?, ?, ?, ?)", task.Date, task.Title, task.Comment, task.Repeat)
 	if err != nil {
 		log.Fatal(err)
 		return 0, err
