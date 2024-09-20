@@ -15,7 +15,7 @@ import (
 const DBinitCommand = `
 	CREATE TABLE IF NOT EXISTS scheduler (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	date DATE, 
+	date VARCHAR(256), 
 	title VARCHAR(256),
 	comment VARCHAR(256),
 	repeat VARCHAR(128)

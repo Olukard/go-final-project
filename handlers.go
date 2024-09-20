@@ -11,7 +11,7 @@ import (
 type Task struct {
 	Date    string `json:"date"`
 	Title   string `json:"title"`
-	Comment string `json:"comment"`
+	Comment string `json:"comment, omitempty"`
 	Repeat  string `json:"repeat"`
 }
 
@@ -86,11 +86,11 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	today := time.Now()
+	now := time.Now()
 
 	// Проверяем дату задачи на пустое значение
 	if task.Date == "" {
-		task.Date = today.Format("20060102")
+		task.Date = now.Format("20060102")
 	} else {
 		// Проверяем парсится ли дата
 		dueDate, err := time.Parse("20060102", task.Date)
@@ -101,10 +101,10 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Проверяем, не раньше ли дата, чем сегодня
-		if dueDate.Before(today) {
+		if dueDate.Before(now) {
 			// Если дата раньше, вычисляем следующую дату
 			if task.Repeat != "" {
-				nextDueDate, err := NextDate(today, task.Date, task.Repeat)
+				nextDueDate, err := NextDate(now, task.Date, task.Repeat)
 				if err != nil {
 					response := AddTaskResponse{Error: "Неверный формат правила повторения"}
 					json.NewEncoder(w).Encode(response)
@@ -112,7 +112,7 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 				}
 				task.Date = nextDueDate
 			} else {
-				task.Date = today.Format("20060102")
+				task.Date = now.Format("20060102")
 			}
 		}
 	}
