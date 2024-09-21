@@ -87,3 +87,34 @@ func insertIntoDB(task Task) (int, error) {
 	return int(id), nil
 
 }
+
+func getFromDB() ([]Task, error) {
+	var tasks []Task
+
+	db, err := sql.Open("sqlite3", "./scheduler.db")
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	defer db.Close()
+
+	rows, err := db.Query("SELECT id, date, title, comment, repeat FROM scheduler")
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var task Task
+
+		err := rows.Scan(&task.Id, &task.Date, &task.Title, &task.Comment, &task.Repeat)
+		if err != nil {
+			log.Fatal(err)
+			return nil, err
+		}
+
+		tasks = append(tasks, task)
+	}
+	return tasks, nil
+}
