@@ -15,10 +15,10 @@ import (
 const DBinitCommand = `
 	CREATE TABLE IF NOT EXISTS scheduler (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	date VARCHAR(256), 
-	title VARCHAR(256),
-	comment VARCHAR(256),
-	repeat VARCHAR(128)
+	date VARCHAR(256) NOT NULL DEFAULT "", 
+	title VARCHAR(256) NOT NULL DEFAULT "",
+	comment VARCHAR(256) NOT NULL DEFAULT "",
+	repeat VARCHAR(128) NOT NULL DEFAULT ""
 	);`
 
 const DBindexCommand = `
@@ -93,14 +93,12 @@ func getFromDB() ([]Task, error) {
 
 	db, err := sql.Open("sqlite3", "./scheduler.db")
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	defer db.Close()
 
 	rows, err := db.Query("SELECT id, date, title, comment, repeat FROM scheduler")
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -108,13 +106,24 @@ func getFromDB() ([]Task, error) {
 	for rows.Next() {
 		var task Task
 
-		err := rows.Scan(&task.Id, &task.Date, &task.Title, &task.Comment, &task.Repeat)
+		var id int64
+
+		err := rows.Scan(&id, &task.Date, &task.Title, &task.Comment, &task.Repeat)
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
+		}
+		task.ID = fmt.Sprint(id)
+
+		tasks = append(tasks, task)
+
+		if err := rows.Err(); err != nil {
+			log.Println(err)
 			return nil, err
 		}
 
-		tasks = append(tasks, task)
+	}
+	if tasks == nil {
+		tasks = []Task{}
 	}
 	return tasks, nil
 }

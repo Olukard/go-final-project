@@ -9,7 +9,7 @@ import (
 )
 
 type Task struct {
-	Id      int    `json:"id, omitempty"`
+	ID      string `json:"id, omitempty"`
 	Date    string `json:"date"`
 	Title   string `json:"title"`
 	Comment string `json:"comment, omitempty"`
@@ -22,7 +22,8 @@ type AddTaskResponse struct {
 }
 
 type GetTaskResponse struct {
-	Tasks []Task `json:"tasks"`
+	Tasks []Task `json:"tasks,omitempty"`
+	Error string `json:"error,omitempty"`
 }
 
 func nextDateHandler(w http.ResponseWriter, r *http.Request) {
@@ -135,17 +136,16 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 func getTaskHandler(w http.ResponseWriter, r *http.Request) {
 
-	//устанавливаем заголовок
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	tasks, err := getFromDB()
 	if err != nil {
-		http.Error(w, "Ошибка получения задач: "+err.Error(), http.StatusInternalServerError)
+		response := AddTaskResponse{Error: "Ошибка получения данных"}
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 
-	// Преобразование списка задач в JSON
-	response := GetTaskResponse{Tasks: tasks}
-	json.NewEncoder(w).Encode(response)
-
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"tasks": tasks,
+	})
 }
