@@ -1,18 +1,24 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
+
+	"go-final-project/db"
+	"go-final-project/handlers"
 )
+
+var DB *sql.DB
 
 func main() {
 
 	fmt.Println("Проверяем наличие базы данных...")
-	if !checkDBexists() {
+	if !db.CheckDBexists() {
 		fmt.Println("База данных не найдена, создаем...")
-		CreateDB()
+		db.CreateDB()
 	} else {
 		fmt.Println("База данных найдена.")
 	}
@@ -20,9 +26,9 @@ func main() {
 	router := mux.NewRouter()
 
 	// Обработчики
-	router.HandleFunc("/api/nextdate", nextDateHandler).Methods("GET")
-	router.HandleFunc("/api/task", addTaskHandler).Methods("POST")
-	router.HandleFunc("/api/tasks", getTaskHandler).Methods("GET")
+	router.HandleFunc("/api/nextdate", handlers.NextDateHandler).Methods("GET")
+	router.HandleFunc("/api/task", handlers.AddTaskHandler).Methods("POST")
+	router.HandleFunc("/api/tasks", handlers.GetTaskHandler).Methods("GET")
 
 	// Обработчик для статических файлов (из директории "web")
 	fileServer := http.FileServer(http.Dir("./web"))
