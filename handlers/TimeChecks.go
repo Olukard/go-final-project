@@ -7,10 +7,11 @@ import (
 )
 
 const DayLimit = 400
+const TimeFormat = "20060102"
 
 func NextDate(now time.Time, date string, repeat string) (string, error) {
 
-	taskDate, err := time.Parse("20060102", date)
+	taskDate, err := time.Parse(TimeFormat, date)
 	if err != nil {
 		return "", fmt.Errorf("ошибка формата даты")
 	}
@@ -41,7 +42,7 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 			nextDate = nextDate.AddDate(0, 0, days)
 		}
 
-		return nextDate.Format("20060102"), nil
+		return nextDate.Format(TimeFormat), nil
 
 	case "y":
 		if len(repeat) < 3 {
@@ -58,7 +59,7 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 			nextDate = nextDate.AddDate(years, 0, 0)
 		}
 
-		return nextDate.Format("20060102"), nil
+		return nextDate.Format(TimeFormat), nil
 
 	case "w", "m":
 		return "", fmt.Errorf("правило повторения не поддерживается")

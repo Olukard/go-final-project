@@ -31,7 +31,7 @@ func NextDateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Парсим дату
-	nowDate, err := time.Parse("20060102", nowStr)
+	nowDate, err := time.Parse(TimeFormat, nowStr)
 	if err != nil {
 		http.Error(w, "Неверный формат даты1", http.StatusBadRequest)
 		return
@@ -81,10 +81,10 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Проверяем дату задачи на пустое значение
 	if task.Date == "" {
-		task.Date = now.Format("20060102")
+		task.Date = now.Format(TimeFormat)
 	} else {
 		// Проверяем парсится ли дата
-		dueDate, err := time.Parse("20060102", task.Date)
+		dueDate, err := time.Parse(TimeFormat, task.Date)
 		if err != nil {
 			response := models.AddTaskResponse{Error: "Неверный формат даты"}
 			json.NewEncoder(w).Encode(response)
@@ -103,7 +103,7 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request) {
 				}
 				task.Date = nextDueDate
 			} else {
-				task.Date = now.Format("20060102")
+				task.Date = now.Format(TimeFormat)
 			}
 		}
 	}
