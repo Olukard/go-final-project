@@ -106,6 +106,7 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request) {
 				task.Date = now.Format(TimeFormat)
 			}
 		}
+		task.Date = now.Format(TimeFormat)
 	}
 
 	id, err := db.InsertIntoDB(task)

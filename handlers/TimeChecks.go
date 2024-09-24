@@ -28,18 +28,18 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 		if repeat[2:] == "1" {
 			return date, nil
 		}
-		days, err := strconv.Atoi(repeat[2:])
+		daysToDelay, err := strconv.Atoi(repeat[2:])
 		if err != nil {
 			return "", fmt.Errorf("ошибка формата правила повторения")
 		}
-		if days > DayLimit {
+		if daysToDelay > DayLimit {
 			return "", fmt.Errorf(`превышен максимальный лимит переноса дней. 
-Запрошенный перенос: %d. Допустимый лимит: %d`, days, DayLimit)
+Запрошенный перенос: %d. Допустимый лимит: %d`, daysToDelay, DayLimit)
 		}
-		nextDate := taskDate.AddDate(0, 0, days)
+		nextDate := taskDate.AddDate(0, 0, daysToDelay)
 
 		for nextDate.Before(now) {
-			nextDate = nextDate.AddDate(0, 0, days)
+			nextDate = nextDate.AddDate(0, 0, daysToDelay)
 		}
 
 		return nextDate.Format(TimeFormat), nil
@@ -59,7 +59,7 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 			nextDate = nextDate.AddDate(years, 0, 0)
 		}
 
-		return nextDate.Format(TimeFormat), nil
+		return nextDate.Format("20060102"), nil
 
 	case "w", "m":
 		return "", fmt.Errorf("правило повторения не поддерживается")

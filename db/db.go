@@ -93,7 +93,7 @@ func GetTaskFromDB(id string) (task models.Task, err error) {
 	}
 	defer db.Close()
 
-	err = db.QueryRow("SELECT * FROM scheduler WHERE id = ?", id).Scan(&id, &task.Date, &task.Title, &task.Comment, &task.Repeat)
+	err = db.QueryRow("SELECT * FROM scheduler WHERE id = ?", id).Scan(&task.ID, &task.Date, &task.Title, &task.Comment, &task.Repeat)
 	if err != nil {
 		return task, err
 	}
