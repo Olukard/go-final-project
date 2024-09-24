@@ -86,14 +86,28 @@ func InsertIntoDB(task models.Task) (int, error) {
 
 }
 
-func GetFromDB() ([]models.Task, error) {
+func GetTaskFromDB(id string) (task models.Task, err error) {
 	db, err := sql.Open("sqlite3", "./"+DBfile)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
 
-	var tasks []models.Task
+	err = db.QueryRow("SELECT * FROM scheduler WHERE id = ?", id).Scan(&id, &task.Date, &task.Title, &task.Comment, &task.Repeat)
+	if err != nil {
+		return task, err
+	}
+
+	return task, nil
+
+}
+
+func GetListFromDB() (tasks []models.Task, err error) {
+	db, err := sql.Open("sqlite3", "./"+DBfile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 
 	rows, err := db.Query("SELECT id, date, title, comment, repeat FROM scheduler")
 	if err != nil {

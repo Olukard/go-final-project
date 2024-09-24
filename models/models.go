@@ -14,6 +14,10 @@ type AddTaskResponse struct {
 }
 
 type GetTaskResponse struct {
+	Task  Task   `json:"task,omitempty"`
 	Tasks []Task `json:"tasks,omitempty"`
+}
+
+type ErrorResponse struct {
 	Error string `json:"error,omitempty"`
 }

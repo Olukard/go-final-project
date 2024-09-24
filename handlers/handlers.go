@@ -58,21 +58,21 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request) {
 	//читаем тело запроса
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
-		response := models.AddTaskResponse{Error: "Ошибка чтения запроса"}
+		response := models.ErrorResponse{Error: "Ошибка чтения запроса"}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
 
 	//декодируем json
 	if err = json.Unmarshal(buf.Bytes(), &task); err != nil {
-		response := models.AddTaskResponse{Error: "Ошибка декодирования json"}
+		response := models.ErrorResponse{Error: "Ошибка декодирования json"}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
 
 	//проверяем наличие заголовка запроса
 	if task.Title == "" {
-		response := models.AddTaskResponse{Error: "Заголовок задачи не может быть пустым"}
+		response := models.ErrorResponse{Error: "Заголовок задачи не может быть пустым"}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
@@ -86,7 +86,7 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request) {
 		// Проверяем парсится ли дата
 		dueDate, err := time.Parse(TimeFormat, task.Date)
 		if err != nil {
-			response := models.AddTaskResponse{Error: "Неверный формат даты"}
+			response := models.ErrorResponse{Error: "Неверный формат даты"}
 			json.NewEncoder(w).Encode(response)
 			return
 		}
@@ -97,7 +97,7 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request) {
 			if task.Repeat != "" {
 				nextDueDate, err := NextDate(now, task.Date, task.Repeat)
 				if err != nil {
-					response := models.AddTaskResponse{Error: "Неверный формат правила повторения"}
+					response := models.ErrorResponse{Error: "Неверный формат правила повторения"}
 					json.NewEncoder(w).Encode(response)
 					return
 				}
@@ -123,9 +123,32 @@ func GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-	tasks, err := db.GetFromDB()
+	var task models.Task
+	idStr := r.URL.Query().Get("id")
+
+	if idStr == "" {
+		response := models.ErrorResponse{Error: "Ошибка получения id задачи"}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	task, err := db.GetTaskFromDB(idStr)
 	if err != nil {
-		response := models.AddTaskResponse{Error: "Ошибка получения данных"}
+		response := models.ErrorResponse{Error: "Ошибка получения данных"}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	json.NewEncoder(w).Encode(task)
+}
+
+func GetTasksListHandler(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	tasks, err := db.GetListFromDB()
+	if err != nil {
+		response := models.ErrorResponse{Error: "Ошибка получения данных"}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
