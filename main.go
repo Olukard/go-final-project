@@ -31,6 +31,7 @@ func main() {
 	router.HandleFunc("/api/task", handlers.GetTaskHandler).Methods("GET")
 	router.HandleFunc("/api/task", handlers.EditTaskHandler).Methods("PUT")
 	router.HandleFunc("/api/tasks", handlers.GetTasksListHandler).Methods("GET")
+	router.HandleFunc("/api/task/done", handlers.TaskDoneHandler).Methods("POST")
 
 	// Обработчик для статических файлов (из директории "web")
 	fileServer := http.FileServer(http.Dir("./web"))
