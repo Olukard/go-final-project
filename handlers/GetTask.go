@@ -18,7 +18,6 @@ func GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		response := models.ErrorResponse{Error: "Ошибка получения id задачи"}
 		json.NewEncoder(w).Encode(response)
-		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
