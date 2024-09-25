@@ -102,6 +102,22 @@ func GetTaskFromDB(id string) (task models.Task, err error) {
 
 }
 
+func UpdateTaskInDB(task models.Task) (err error) {
+	db, err := sql.Open("sqlite3", "./"+DBfile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	_, err = db.Exec("UPDATE scheduler SET date = ?, title = ?, comment = ?, repeat = ? WHERE id = ?",
+		task.Date, task.Title, task.Comment, task.Repeat, task.ID)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
+
 func GetListFromDB() (tasks []models.Task, err error) {
 	db, err := sql.Open("sqlite3", "./"+DBfile)
 	if err != nil {

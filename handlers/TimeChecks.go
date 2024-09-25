@@ -6,14 +6,16 @@ import (
 	"time"
 )
 
-const DayLimit = 400
-const TimeFormat = "20060102"
+const (
+	DayLimit   = 400
+	TimeFormat = "20060102"
+)
 
 func NextDate(now time.Time, date string, repeat string) (string, error) {
 
-	taskDate, err := time.Parse(TimeFormat, date)
+	taskDate, err := ValidateDate(date)
 	if err != nil {
-		return "", fmt.Errorf("ошибка формата даты")
+		return "", err
 	}
 
 	if repeat == "" || date == "" {
@@ -67,4 +69,43 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 		return "", fmt.Errorf("неизвестное правило повторения: %s", repeat)
 
 	}
+}
+
+func ValidateDate(date string) (resultDate time.Time, err error) {
+	resultDate, err = time.Parse(TimeFormat, date)
+	if err != nil {
+		return time.Now(), fmt.Errorf("ошибка формата даты, возвращаем сегодняшнее число")
+	}
+	return resultDate, nil
+}
+
+func ValdateRepeatRule(repeat string) (err error) {
+
+	validRepeatRules := map[string]bool{
+		"d": true, // Daily
+		"w": true, // Weekly
+		"m": true, // Monthly
+		"y": true, // Yearly
+	}
+
+	if repeat == "" {
+		return fmt.Errorf("правило не может быть пустым")
+	}
+
+	if !validRepeatRules[string(repeat[0])] {
+		return fmt.Errorf("правило не существует")
+	}
+
+	if len(repeat) < 3 {
+		return fmt.Errorf("ошибка формата правила повторения")
+	}
+
+	if len(repeat) > 1 {
+		_, err := strconv.Atoi(repeat[2:])
+		if err != nil {
+			return fmt.Errorf("ошибка формата правила повторения")
+		}
+	}
+
+	return nil
 }

@@ -29,6 +29,7 @@ func main() {
 	router.HandleFunc("/api/nextdate", handlers.NextDateHandler).Methods("GET")
 	router.HandleFunc("/api/task", handlers.AddTaskHandler).Methods("POST")
 	router.HandleFunc("/api/task", handlers.GetTaskHandler).Methods("GET")
+	router.HandleFunc("/api/task", handlers.EditTaskHandler).Methods("PUT")
 	router.HandleFunc("/api/tasks", handlers.GetTasksListHandler).Methods("GET")
 
 	// Обработчик для статических файлов (из директории "web")
