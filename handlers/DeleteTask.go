@@ -7,11 +7,9 @@ import (
 	"net/http"
 )
 
-func GetTaskHandler(w http.ResponseWriter, r *http.Request) {
-
+func DeleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-	var task models.Task
 	idStr := r.URL.Query().Get("id")
 
 	err := ValidateID(idStr)
@@ -22,12 +20,13 @@ func GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task, err = db.GetTaskFromDB(idStr)
+	err = db.DeleteTaskFromDB(idStr)
 	if err != nil {
-		response := models.ErrorResponse{Error: "Ошибка получения данных"}
+		response := models.ErrorResponse{Error: "Ошибка удаления задачи"}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{})
 
-	json.NewEncoder(w).Encode(task)
 }

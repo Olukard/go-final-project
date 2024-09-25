@@ -71,6 +71,11 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 	}
 }
 
+func ValidateID(id string) (err error) {
+	_, err = strconv.Atoi(id)
+	return err
+}
+
 func ValidateDate(date string) (resultDate time.Time, err error) {
 	resultDate, err = time.Parse(TimeFormat, date)
 	if err != nil {
