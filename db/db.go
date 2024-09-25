@@ -155,3 +155,19 @@ func GetListFromDB() (tasks []models.Task, err error) {
 	}
 	return tasks, nil
 }
+
+func DeleteTaskFromDB(id string) (err error) {
+	db, err := sql.Open("sqlite3", "./"+DBfile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	_, err = db.Exec("DELETE FROM scheduler WHERE id = ?",
+		id)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
