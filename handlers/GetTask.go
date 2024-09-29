@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func GetTaskHandler(w http.ResponseWriter, r *http.Request) {
+func GetTaskHandler(w http.ResponseWriter, r *http.Request, db *db.DB) {
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 

@@ -9,16 +9,13 @@ import (
 	"time"
 )
 
-func AddTaskHandler(w http.ResponseWriter, r *http.Request) {
+func AddTaskHandler(w http.ResponseWriter, r *http.Request, db *db.DB) {
 
-	//обозначаем структуры
 	var task models.Task
 	var buf bytes.Buffer
 
-	//устанавливаем заголовок
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-	//читаем тело запроса
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
 		response := models.ErrorResponse{Error: "Ошибка чтения запроса"}
@@ -26,14 +23,12 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//декодируем json
 	if err = json.Unmarshal(buf.Bytes(), &task); err != nil {
 		response := models.ErrorResponse{Error: "Ошибка декодирования json"}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
 
-	//проверяем наличие заголовка запроса
 	if task.Title == "" {
 		response := models.ErrorResponse{Error: "Заголовок задачи не может быть пустым"}
 		json.NewEncoder(w).Encode(response)
@@ -42,11 +37,9 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	now := time.Now()
 
-	// Проверяем дату задачи на пустое значение
 	if task.Date == "" {
 		task.Date = now.Format(TimeFormat)
 	} else {
-		// Проверяем парсится ли дата
 		dueDate, err := time.Parse(TimeFormat, task.Date)
 		if err != nil {
 			response := models.ErrorResponse{Error: "Неверный формат даты"}
@@ -54,9 +47,7 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Проверяем, не раньше ли дата, чем сегодня
 		if dueDate.Before(now) {
-			// Если дата раньше, вычисляем следующую дату
 			if task.Repeat != "" {
 				nextDueDate, err := NextDate(now, task.Date, task.Repeat)
 				if err != nil {

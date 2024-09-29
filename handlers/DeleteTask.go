@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func DeleteTaskHandler(w http.ResponseWriter, r *http.Request) {
+func DeleteTaskHandler(w http.ResponseWriter, r *http.Request, db *db.DB) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	idStr := r.URL.Query().Get("id")

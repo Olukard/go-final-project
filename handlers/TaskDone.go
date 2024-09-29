@@ -9,7 +9,7 @@ import (
 	"go-final-project/models"
 )
 
-func TaskDoneHandler(w http.ResponseWriter, r *http.Request) {
+func TaskDoneHandler(w http.ResponseWriter, r *http.Request, db *db.DB) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	idStr := r.URL.Query().Get("id")
@@ -18,7 +18,6 @@ func TaskDoneHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		response := models.ErrorResponse{Error: "Ошибка получения id задачи"}
 		json.NewEncoder(w).Encode(response)
-		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -31,7 +30,6 @@ func TaskDoneHandler(w http.ResponseWriter, r *http.Request) {
 
 	if task.Repeat == "" {
 		db.DeleteTaskFromDB(idStr)
-		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]interface{}{})
 		return
 	}
@@ -48,7 +46,5 @@ func TaskDoneHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-
-	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{})
 }

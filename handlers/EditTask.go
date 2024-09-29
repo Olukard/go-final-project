@@ -7,10 +7,9 @@ import (
 	"go-final-project/db"
 	"go-final-project/models"
 	"net/http"
-	"time"
 )
 
-func EditTaskHandler(w http.ResponseWriter, r *http.Request) {
+func EditTaskHandler(w http.ResponseWriter, r *http.Request, db *db.DB) {
 	var task models.Task
 	var buf bytes.Buffer
 
@@ -35,9 +34,9 @@ func EditTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = ValidateDate(task.Date)
+	_, err = ValidateDate(task.Date, TimeFormat)
 	if err != nil {
-		response := models.ErrorResponse{Error: "неверное правило повторения"}
+		response := models.ErrorResponse{Error: "неверный формат даты"}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
@@ -56,7 +55,7 @@ func EditTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = time.Parse(TimeFormat, task.Date)
+	_, err = ValidateDate(task.Date, TimeFormat)
 	if err != nil {
 		response := models.ErrorResponse{Error: "Неверный формат даты"}
 		json.NewEncoder(w).Encode(response)

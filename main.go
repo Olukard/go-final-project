@@ -1,50 +1,64 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
+	"log"
 	"net/http"
+	"os"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi"
 
 	"go-final-project/db"
 	"go-final-project/handlers"
 )
 
-var DB *sql.DB
-
 func main() {
 
-	fmt.Println("Проверяем наличие базы данных...")
-	if !db.CheckDBexists() {
-		fmt.Println("База данных не найдена, создаем...")
-		db.CreateDB()
-	} else {
-		fmt.Println("База данных найдена.")
+	db, err := db.CreateDB()
+	if err != nil {
+		log.Print(err)
 	}
 
-	router := mux.NewRouter()
+	router := chi.NewRouter()
 
-	// Обработчики
-	router.HandleFunc("/api/nextdate", handlers.NextDateHandler).Methods("GET")
-	router.HandleFunc("/api/task", handlers.AddTaskHandler).Methods("POST")
-	router.HandleFunc("/api/task", handlers.GetTaskHandler).Methods("GET")
-	router.HandleFunc("/api/task", handlers.EditTaskHandler).Methods("PUT")
-	router.HandleFunc("/api/task", handlers.DeleteTaskHandler).Methods("DELETE")
-	router.HandleFunc("/api/tasks", handlers.GetTasksListHandler).Methods("GET")
-	router.HandleFunc("/api/task/done", handlers.TaskDoneHandler).Methods("POST")
+	fileserver := http.FileServer(http.Dir("./web"))
+	router.Handle("/*", fileserver)
 
-	// Обработчик для статических файлов (из директории "web")
-	fileServer := http.FileServer(http.Dir("./web"))
-	router.PathPrefix("/").Handler(fileServer) // Обратите внимание на router
+	router.Get("/api/nextdate", handlers.NextDateHandler)
 
-	port := ":7540"
+	router.Post("/api/task", func(w http.ResponseWriter, r *http.Request) {
+		handlers.AddTaskHandler(w, r, db)
+	})
 
-	fmt.Printf("Запускаем сервер. Порт%s\n", port)
-	err := http.ListenAndServe(port, router) // Запускаем сервер с router
+	router.Get("/api/task", func(w http.ResponseWriter, r *http.Request) {
+		handlers.GetTaskHandler(w, r, db)
+	})
+
+	router.Put("/api/task", func(w http.ResponseWriter, r *http.Request) {
+		handlers.EditTaskHandler(w, r, db)
+	})
+
+	router.Delete("/api/task", func(w http.ResponseWriter, r *http.Request) {
+		handlers.DeleteTaskHandler(w, r, db)
+	})
+
+	router.Get("/api/tasks", func(w http.ResponseWriter, r *http.Request) {
+		handlers.GetTasksListHandler(w, r, db)
+	})
+
+	router.Post("/api/task/done", func(w http.ResponseWriter, r *http.Request) {
+		handlers.TaskDoneHandler(w, r, db)
+	})
+
+	port := os.Getenv("TODO_PORT")
+	if port == "" {
+		port = ":7540"
+	}
+
+	log.Printf("Запускаем сервер. Порт%s\n", port)
+	err = http.ListenAndServe(port, router)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println("Завершаем работу")
+	log.Println("Завершаем работу")
 }

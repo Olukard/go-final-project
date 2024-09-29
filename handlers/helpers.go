@@ -11,25 +11,26 @@ const (
 	TimeFormat = "20060102"
 )
 
+// NextDate вычисляет следующую дату повторения задачи в соответсии с заданным правилом повторения. Таже валидируются форматы дат и самого правила повторения.
 func NextDate(now time.Time, date string, repeat string) (string, error) {
 
-	taskDate, err := ValidateDate(date)
+	taskDate, err := ValidateDate(date, TimeFormat)
 	if err != nil {
 		return "", err
 	}
 
 	if repeat == "" || date == "" {
-		return "", fmt.Errorf("ошибка ввода")
+		return "", fmt.Errorf("ошибка открытия базы данных: %w", err)
 	}
 
 	switch string(repeat[0]) {
 	case "d":
 		if len(repeat) < 3 {
-			return "", fmt.Errorf("ошибка формата правила повторения")
+			return "", fmt.Errorf("ошибка формата правила повторения: %w", err)
 		}
 		daysToDelay, err := strconv.Atoi(repeat[2:])
 		if err != nil {
-			return "", fmt.Errorf("ошибка формата правила повторения")
+			return "", fmt.Errorf("ошибка формата правила повторения: %w", err)
 		}
 		if daysToDelay > DayLimit {
 			return "", fmt.Errorf(`превышен максимальный лимит переноса дней. 
@@ -49,7 +50,7 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 		}
 		years, err := strconv.Atoi(repeat[2:])
 		if err != nil {
-			return "", fmt.Errorf("ошибка формата правила повторения")
+			return "", fmt.Errorf("ошибка формата правила повторения: %w", err)
 		}
 
 		nextDate := taskDate.AddDate(years, 0, 0)
@@ -61,26 +62,29 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 		return nextDate.Format("20060102"), nil
 
 	case "w", "m":
-		return "", fmt.Errorf("правило повторения не поддерживается")
+		return "", fmt.Errorf("правило повторения не поддерживается: %w", err)
 	default:
 		return "", fmt.Errorf("неизвестное правило повторения: %s", repeat)
 
 	}
 }
 
+// ValidateID вилидирует, что поле ID является нумерическим значением
 func ValidateID(id string) (err error) {
 	_, err = strconv.Atoi(id)
 	return err
 }
 
-func ValidateDate(date string) (resultDate time.Time, err error) {
-	resultDate, err = time.Parse(TimeFormat, date)
+// ValidateDate вилидирует, что дата является нумерическим значением, и сооветсвует заданному формату даты
+func ValidateDate(date string, timeFormat string) (resultDate time.Time, err error) {
+	resultDate, err = time.Parse(timeFormat, date)
 	if err != nil {
 		return time.Now(), fmt.Errorf("ошибка формата даты, возвращаем сегодняшнее число")
 	}
 	return resultDate, nil
 }
 
+// ValidateRepeatRule проверяет, что строка точно соотвествует заданному списку правил повторения задач. Также проверяется формат нумерического занчения в формате правила.
 func ValdateRepeatRule(repeat string) (err error) {
 
 	validRepeatRules := map[string]bool{

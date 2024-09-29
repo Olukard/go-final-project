@@ -7,30 +7,27 @@ import (
 )
 
 func NextDateHandler(w http.ResponseWriter, r *http.Request) {
-	// Получаем параметры из запроса
+
 	nowStr := r.URL.Query().Get("now")
 	dateStr := r.URL.Query().Get("date")
 	repeatStr := r.URL.Query().Get("repeat")
 
-	// Проверяем, что параметры не пусты
-	if nowStr == "" {
-		http.Error(w, "Не задана дата", http.StatusBadRequest)
-	}
-	if dateStr == "" {
-		http.Error(w, "Не задана дата", http.StatusBadRequest)
-		return
-	}
-	if repeatStr == "" {
-		http.Error(w, "Не задано правило повторения", http.StatusBadRequest)
-		return
+	_, err := ValidateDate(nowStr, TimeFormat)
+	if err != nil {
+		http.Error(w, "Неверный формат даты", http.StatusBadRequest)
 	}
 
-	// Парсим дату
-	nowDate, err := time.Parse(TimeFormat, nowStr)
+	_, err = ValidateDate(dateStr, TimeFormat)
 	if err != nil {
-		http.Error(w, "Неверный формат даты1", http.StatusBadRequest)
-		return
+		http.Error(w, "Неверный формат даты", http.StatusBadRequest)
 	}
+
+	err = ValdateRepeatRule(repeatStr)
+	if err != nil {
+		http.Error(w, "Неверный формат правила повторения", http.StatusBadRequest)
+	}
+
+	nowDate, _ := time.Parse(TimeFormat, nowStr)
 
 	repeatDate, err := NextDate(nowDate, dateStr, repeatStr)
 	if err != nil {
