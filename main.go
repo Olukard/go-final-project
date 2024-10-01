@@ -25,29 +25,12 @@ func main() {
 
 	router.Get("/api/nextdate", handlers.NextDateHandler)
 
-	router.Post("/api/task", func(w http.ResponseWriter, r *http.Request) {
-		handlers.AddTaskHandler(w, r, db)
-	})
-
-	router.Get("/api/task", func(w http.ResponseWriter, r *http.Request) {
-		handlers.GetTaskHandler(w, r, db)
-	})
-
-	router.Put("/api/task", func(w http.ResponseWriter, r *http.Request) {
-		handlers.EditTaskHandler(w, r, db)
-	})
-
-	router.Delete("/api/task", func(w http.ResponseWriter, r *http.Request) {
-		handlers.DeleteTaskHandler(w, r, db)
-	})
-
-	router.Get("/api/tasks", func(w http.ResponseWriter, r *http.Request) {
-		handlers.GetTasksListHandler(w, r, db)
-	})
-
-	router.Post("/api/task/done", func(w http.ResponseWriter, r *http.Request) {
-		handlers.TaskDoneHandler(w, r, db)
-	})
+	router.Post("/api/task", handlers.AddTaskHandler(db))
+	router.Get("/api/task", handlers.GetTaskHandler(db))
+	router.Put("/api/task", handlers.EditTaskHandler(db))
+	router.Delete("/api/task", handlers.DeleteTaskHandler(db))
+	router.Get("/api/tasks", handlers.GetTasksListHandler(db))
+	router.Post("/api/task/done", handlers.TaskDoneHandler(db))
 
 	port := os.Getenv("TODO_PORT")
 	if port == "" {
