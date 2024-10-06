@@ -30,7 +30,7 @@ const DBindexCommand = `
 // CreateDB создает файл базы данных с индексакцией в соотвествии с заданными константами DBinitCommand и DBindexCommand
 func CreateDB() (*DB, error) {
 
-	log.Println("Проверяем наличие базы данных...")
+	log.Println("Checking db file...")
 
 	dbfile := os.Getenv("TODO_DBFILE")
 	if dbfile == "" {
@@ -40,26 +40,26 @@ func CreateDB() (*DB, error) {
 	_, err := os.Stat(dbfile)
 
 	if err == nil {
-		log.Println("База данных найдена.")
+		log.Println("Database found.")
 		db, err := sql.Open("sqlite3", "./"+dbfile)
 		return &DB{db: db}, err
 	}
 
-	log.Println("База данных не найдена, создаем.")
+	log.Println("Database not found, creating database.")
 
 	db, err := sql.Open("sqlite3", "./"+dbfile)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка открытия базы данных: %w", err)
+		return nil, fmt.Errorf("error opening database: %w", err)
 	}
 
 	_, err = db.Exec(DBinitCommand)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка инициализации базы данных: %w", err)
+		return nil, fmt.Errorf("error initializing database: %w", err)
 	}
 
 	_, err = db.Exec(DBindexCommand)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка индексации базы данных: %w", err)
+		return nil, fmt.Errorf("error indexing database: %w", err)
 	}
 
 	return &DB{db: db}, nil
@@ -70,12 +70,12 @@ func (d *DB) InsertIntoDB(task models.Task) (int, error) {
 
 	result, err := d.db.Exec("INSERT INTO scheduler (date, title, comment, repeat) VALUES (?, ?, ?, ?)", task.Date, task.Title, task.Comment, task.Repeat)
 	if err != nil {
-		return 0, fmt.Errorf("ошибка добавления данных: %w", err)
+		return 0, fmt.Errorf("error executing db command: %w", err)
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		return 0, fmt.Errorf("ошибка возврата задачи: %w", err)
+		return 0, fmt.Errorf("error returning task: %w", err)
 	}
 
 	return int(id), nil
@@ -87,7 +87,7 @@ func (d *DB) GetTaskFromDB(id string) (task models.Task, err error) {
 
 	err = d.db.QueryRow("SELECT * FROM scheduler WHERE id = ?", id).Scan(&task.ID, &task.Date, &task.Title, &task.Comment, &task.Repeat)
 	if err != nil {
-		return task, fmt.Errorf("ошибка получения данных из базы данных: %w", err)
+		return task, fmt.Errorf("error querying database: %w", err)
 	}
 
 	return task, nil
@@ -99,7 +99,7 @@ func (d *DB) UpdateTaskInDB(task models.Task) (err error) {
 	_, err = d.db.Exec("UPDATE scheduler SET date = ?, title = ?, comment = ?, repeat = ? WHERE id = ?",
 		task.Date, task.Title, task.Comment, task.Repeat, task.ID)
 	if err != nil {
-		return fmt.Errorf("ошибка изменения задачи в базе данных: %w", err)
+		return fmt.Errorf("error updating task in db: %w", err)
 	}
 	return nil
 }
@@ -109,7 +109,7 @@ func (d *DB) GetListFromDB() (tasks []models.Task, err error) {
 
 	rows, err := d.db.Query("SELECT id, date, title, comment, repeat FROM scheduler ORDER BY date LIMIT 50")
 	if err != nil {
-		return nil, fmt.Errorf("ошибка получения списка зада из базы данных: %w", err)
+		return nil, fmt.Errorf("error querying database: %w", err)
 	}
 	defer rows.Close()
 
@@ -120,17 +120,18 @@ func (d *DB) GetListFromDB() (tasks []models.Task, err error) {
 
 		err := rows.Scan(&id, &task.Date, &task.Title, &task.Comment, &task.Repeat)
 		if err != nil {
-			return nil, fmt.Errorf("ошибка считывания данных: %w", err)
+			return nil, fmt.Errorf("error scanning db rows: %w", err)
 		}
 		task.ID = fmt.Sprint(id)
 
 		tasks = append(tasks, task)
-
-		if err := rows.Err(); err != nil {
-			return nil, fmt.Errorf("ошибка считывания данных: %w", err)
-		}
-
 	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, fmt.Errorf("error scanning db rows: %w", err)
+	}
+
 	if tasks == nil {
 		tasks = []models.Task{}
 	}
@@ -143,7 +144,7 @@ func (d *DB) DeleteTaskFromDB(id string) (err error) {
 	_, err = d.db.Exec("DELETE FROM scheduler WHERE id = ?",
 		id)
 	if err != nil {
-		return fmt.Errorf("ошибка удаления из базы данных: %w", err)
+		return fmt.Errorf("error deleting from database: %w", err)
 	}
 	return nil
 }

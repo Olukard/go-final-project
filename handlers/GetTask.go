@@ -16,15 +16,13 @@ func GetTaskHandler(db *db.DB) func(w http.ResponseWriter, r *http.Request) {
 
 		err := ValidateID(idStr)
 		if err != nil {
-			response := models.ErrorResponse{Error: "Ошибка получения id задачи"}
-			json.NewEncoder(w).Encode(response)
+			handleError(w, err, "Internal server error")
 			return
 		}
 
 		task, err = db.GetTaskFromDB(idStr)
 		if err != nil {
-			response := models.ErrorResponse{Error: "Ошибка получения данных"}
-			json.NewEncoder(w).Encode(response)
+			handleError(w, err, "Internal server error")
 			return
 		}
 

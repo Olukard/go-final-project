@@ -18,55 +18,48 @@ func EditTaskHandler(db *db.DB) func(w http.ResponseWriter, r *http.Request) {
 
 		_, err := buf.ReadFrom(r.Body)
 		if err != nil {
-			response := models.ErrorResponse{Error: "Ошибка чтения запроса"}
-			json.NewEncoder(w).Encode(response)
+			handleError(w, err, "Internal server error")
 			return
 		}
 
 		if err = json.Unmarshal(buf.Bytes(), &task); err != nil {
-			response := models.ErrorResponse{Error: "Ошибка декодирования json"}
-			json.NewEncoder(w).Encode(response)
+			handleError(w, err, "Internal server error")
 			return
 		}
 
 		if task.Title == "" {
-			response := models.ErrorResponse{Error: "Заголовок задачи не может быть пустым"}
-			json.NewEncoder(w).Encode(response)
+			err := fmt.Errorf("title cannot be empty")
+			handleError(w, err, "Internal server error")
 			return
 		}
 
 		_, err = ValidateDate(task.Date, TimeFormat)
 		if err != nil {
-			response := models.ErrorResponse{Error: "неверный формат даты"}
-			json.NewEncoder(w).Encode(response)
+			handleError(w, err, "Internal server error")
 			return
 		}
 
 		err = ValdateRepeatRule(task.Repeat)
 		if err != nil {
-			response := models.ErrorResponse{Error: "неверное правило повторения"}
-			json.NewEncoder(w).Encode(response)
+			handleError(w, err, "Internal server error")
 			return
 		}
 
 		_, err = db.GetTaskFromDB(task.ID)
 		if err != nil {
-			response := models.ErrorResponse{Error: "Задачи не существует"}
-			json.NewEncoder(w).Encode(response)
+			handleError(w, err, "Internal server error")
 			return
 		}
 
 		_, err = ValidateDate(task.Date, TimeFormat)
 		if err != nil {
-			response := models.ErrorResponse{Error: "Неверный формат даты"}
-			json.NewEncoder(w).Encode(response)
+			handleError(w, err, "Internal server error")
 			return
 		}
 
 		err = db.UpdateTaskInDB(task)
 		if err != nil {
-			response := models.ErrorResponse{Error: fmt.Sprintf("Ошибка обновления задачи: %v", err)}
-			json.NewEncoder(w).Encode(response)
+			handleError(w, err, "Internal server error")
 			return
 		}
 

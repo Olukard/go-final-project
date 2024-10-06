@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"go-final-project/db"
-	"go-final-project/models"
 	"net/http"
 )
 
@@ -15,15 +14,13 @@ func DeleteTaskHandler(db *db.DB) func(w http.ResponseWriter, r *http.Request) {
 
 		err := ValidateID(idStr)
 		if err != nil {
-			response := models.ErrorResponse{Error: "Ошибка получения id задачи"}
-			json.NewEncoder(w).Encode(response)
+			handleError(w, err, "Internal server error")
 			return
 		}
 
 		err = db.DeleteTaskFromDB(idStr)
 		if err != nil {
-			response := models.ErrorResponse{Error: "Ошибка удаления задачи"}
-			json.NewEncoder(w).Encode(response)
+			handleError(w, err, "Internal server error")
 			return
 		}
 		w.WriteHeader(http.StatusOK)

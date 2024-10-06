@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"go-final-project/db"
-	"go-final-project/models"
 	"net/http"
 )
 
@@ -13,8 +12,7 @@ func GetTasksListHandler(db *db.DB) func(w http.ResponseWriter, r *http.Request)
 
 		tasks, err := db.GetListFromDB()
 		if err != nil {
-			response := models.ErrorResponse{Error: "Ошибка получения данных"}
-			json.NewEncoder(w).Encode(response)
+			handleError(w, err, "Internal server error")
 			return
 		}
 

@@ -37,11 +37,11 @@ func main() {
 		port = ":7540"
 	}
 
-	log.Printf("Запускаем сервер. Порт%s\n", port)
+	log.Printf("Launching server. Port%s\n", port)
 	err = http.ListenAndServe(port, router)
 	if err != nil {
 		panic(err)
 	}
 
-	log.Println("Завершаем работу")
+	log.Println("Exiting")
 }

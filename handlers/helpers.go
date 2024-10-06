@@ -1,7 +1,11 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
+	"go-final-project/models"
+	"log"
+	"net/http"
 	"strconv"
 	"time"
 )
@@ -20,21 +24,21 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 	}
 
 	if repeat == "" || date == "" {
-		return "", fmt.Errorf("ошибка открытия базы данных: %w", err)
+		return "", fmt.Errorf("error opening database: %w", err)
 	}
 
 	switch string(repeat[0]) {
 	case "d":
 		if len(repeat) < 3 {
-			return "", fmt.Errorf("ошибка формата правила повторения: %w", err)
+			return "", fmt.Errorf("repeat rule format error, amount of days not specified: %w", err)
 		}
 		daysToDelay, err := strconv.Atoi(repeat[2:])
 		if err != nil {
-			return "", fmt.Errorf("ошибка формата правила повторения: %w", err)
+			return "", fmt.Errorf("repeat rule format error, cannot parse amount of days: %w", err)
 		}
 		if daysToDelay > DayLimit {
-			return "", fmt.Errorf(`превышен максимальный лимит переноса дней. 
-Запрошенный перенос: %d. Допустимый лимит: %d`, daysToDelay, DayLimit)
+			return "", fmt.Errorf(`maximum day delay exeeded. 
+Day delay: %d. Current limit: %d`, daysToDelay, DayLimit)
 		}
 		nextDate := taskDate.AddDate(0, 0, daysToDelay)
 
@@ -50,7 +54,7 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 		}
 		years, err := strconv.Atoi(repeat[2:])
 		if err != nil {
-			return "", fmt.Errorf("ошибка формата правила повторения: %w", err)
+			return "", fmt.Errorf("repeat rule format error, cannot parse amount of days: %w", err)
 		}
 
 		nextDate := taskDate.AddDate(years, 0, 0)
@@ -62,9 +66,9 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 		return nextDate.Format("20060102"), nil
 
 	case "w", "m":
-		return "", fmt.Errorf("правило повторения не поддерживается: %w", err)
+		return "", fmt.Errorf("repeat reule not yet implemented: %w", err)
 	default:
-		return "", fmt.Errorf("неизвестное правило повторения: %s", repeat)
+		return "", fmt.Errorf("unknown repeat rule: %s", repeat)
 
 	}
 }
@@ -79,7 +83,7 @@ func ValidateID(id string) (err error) {
 func ValidateDate(date string, timeFormat string) (resultDate time.Time, err error) {
 	resultDate, err = time.Parse(timeFormat, date)
 	if err != nil {
-		return time.Now(), fmt.Errorf("ошибка формата даты, возвращаем сегодняшнее число")
+		return time.Now(), fmt.Errorf("date format error, returning current date")
 	}
 	return resultDate, nil
 }
@@ -95,11 +99,11 @@ func ValdateRepeatRule(repeat string) (err error) {
 	}
 
 	if repeat == "" {
-		return fmt.Errorf("правило не может быть пустым")
+		return fmt.Errorf("repeat rule cannot be empty")
 	}
 
 	if !validRepeatRules[string(repeat[0])] {
-		return fmt.Errorf("правило не существует")
+		return fmt.Errorf("unknown repeat rule: %s", repeat)
 	}
 
 	if repeat == "y" {
@@ -107,15 +111,22 @@ func ValdateRepeatRule(repeat string) (err error) {
 	}
 
 	if len(repeat) < 3 {
-		return fmt.Errorf("ошибка формата правила повторения")
+		return fmt.Errorf("repeat rule format error, amount of days not specified")
 	}
 
 	if len(repeat) > 1 {
 		_, err := strconv.Atoi(repeat[2:])
 		if err != nil {
-			return fmt.Errorf("ошибка формата правила повторения")
+			return fmt.Errorf("repeat rule format error, cannot parse amount of days")
 		}
 	}
 
 	return nil
+}
+
+func handleError(w http.ResponseWriter, err error, msg string) {
+	log.Printf("Error: %v", err)
+	response := models.ErrorResponse{Error: msg}
+	w.WriteHeader(http.StatusInternalServerError)
+	json.NewEncoder(w).Encode(response)
 }

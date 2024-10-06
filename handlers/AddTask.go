@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"go-final-project/db"
 	"go-final-project/models"
 	"net/http"
@@ -19,20 +20,18 @@ func AddTaskHandler(db *db.DB) func(w http.ResponseWriter, r *http.Request) {
 
 		_, err := buf.ReadFrom(r.Body)
 		if err != nil {
-			response := models.ErrorResponse{Error: "Ошибка чтения запроса"}
-			json.NewEncoder(w).Encode(response)
+			handleError(w, err, "Internal server error")
 			return
 		}
 
 		if err = json.Unmarshal(buf.Bytes(), &task); err != nil {
-			response := models.ErrorResponse{Error: "Ошибка декодирования json"}
-			json.NewEncoder(w).Encode(response)
+			handleError(w, err, "Internal server error")
 			return
 		}
 
 		if task.Title == "" {
-			response := models.ErrorResponse{Error: "Заголовок задачи не может быть пустым"}
-			json.NewEncoder(w).Encode(response)
+			err := fmt.Errorf("title cannot be empty")
+			handleError(w, err, "Internal server error")
 			return
 		}
 
@@ -43,8 +42,7 @@ func AddTaskHandler(db *db.DB) func(w http.ResponseWriter, r *http.Request) {
 		} else {
 			dueDate, err := time.Parse(TimeFormat, task.Date)
 			if err != nil {
-				response := models.ErrorResponse{Error: "Неверный формат даты"}
-				json.NewEncoder(w).Encode(response)
+				handleError(w, err, "Internal server error")
 				return
 			}
 
@@ -52,8 +50,7 @@ func AddTaskHandler(db *db.DB) func(w http.ResponseWriter, r *http.Request) {
 				if task.Repeat != "" {
 					nextDueDate, err := NextDate(now, task.Date, task.Repeat)
 					if err != nil {
-						response := models.ErrorResponse{Error: "Неверный формат правила повторения"}
-						json.NewEncoder(w).Encode(response)
+						handleError(w, err, "Internal server error")
 						return
 					}
 					task.Date = nextDueDate
@@ -66,8 +63,7 @@ func AddTaskHandler(db *db.DB) func(w http.ResponseWriter, r *http.Request) {
 
 		id, err := db.InsertIntoDB(task)
 		if err != nil {
-			response := models.AddTaskResponse{Error: "Ошибка добавления в базу данных"}
-			json.NewEncoder(w).Encode(response)
+			handleError(w, err, "Internal server error")
 			return
 
 		}

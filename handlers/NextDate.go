@@ -14,19 +14,19 @@ func NextDateHandler(w http.ResponseWriter, r *http.Request) {
 
 	_, err := ValidateDate(nowStr, TimeFormat)
 	if err != nil {
-		http.Error(w, "Неверный формат даты", http.StatusBadRequest)
+		handleError(w, err, "Internal server error")
 		return
 	}
 
 	_, err = ValidateDate(dateStr, TimeFormat)
 	if err != nil {
-		http.Error(w, "Неверный формат даты", http.StatusBadRequest)
+		handleError(w, err, "Internal server error")
 		return
 	}
 
 	err = ValdateRepeatRule(repeatStr)
 	if err != nil {
-		http.Error(w, "Неверный формат правила повторения", http.StatusBadRequest)
+		handleError(w, err, "Internal server error")
 		return
 	}
 
@@ -34,7 +34,7 @@ func NextDateHandler(w http.ResponseWriter, r *http.Request) {
 
 	repeatDate, err := NextDate(nowDate, dateStr, repeatStr)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		handleError(w, err, "Internal server error")
 		return
 	}
 
