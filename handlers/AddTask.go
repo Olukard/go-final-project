@@ -20,18 +20,18 @@ func AddTaskHandler(db *db.DB) func(w http.ResponseWriter, r *http.Request) {
 
 		_, err := buf.ReadFrom(r.Body)
 		if err != nil {
-			handleError(w, err, "Internal server error")
+			handleError(w, err, "Bad request", 400)
 			return
 		}
 
 		if err = json.Unmarshal(buf.Bytes(), &task); err != nil {
-			handleError(w, err, "Internal server error")
+			handleError(w, err, "Bad request", 400)
 			return
 		}
 
 		if task.Title == "" {
 			err := fmt.Errorf("title cannot be empty")
-			handleError(w, err, "Internal server error")
+			handleError(w, err, "Bad request", 400)
 			return
 		}
 
@@ -42,7 +42,7 @@ func AddTaskHandler(db *db.DB) func(w http.ResponseWriter, r *http.Request) {
 		} else {
 			dueDate, err := time.Parse(TimeFormat, task.Date)
 			if err != nil {
-				handleError(w, err, "Internal server error")
+				handleError(w, err, "Bad request", 500)
 				return
 			}
 
@@ -50,7 +50,7 @@ func AddTaskHandler(db *db.DB) func(w http.ResponseWriter, r *http.Request) {
 				if task.Repeat != "" {
 					nextDueDate, err := NextDate(now, task.Date, task.Repeat)
 					if err != nil {
-						handleError(w, err, "Internal server error")
+						handleError(w, err, "Bad request", 500)
 						return
 					}
 					task.Date = nextDueDate
@@ -63,7 +63,7 @@ func AddTaskHandler(db *db.DB) func(w http.ResponseWriter, r *http.Request) {
 
 		id, err := db.InsertIntoDB(task)
 		if err != nil {
-			handleError(w, err, "Internal server error")
+			handleError(w, err, "Internal server error", 400)
 			return
 
 		}

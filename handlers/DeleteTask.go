@@ -14,13 +14,13 @@ func DeleteTaskHandler(db *db.DB) func(w http.ResponseWriter, r *http.Request) {
 
 		err := ValidateID(idStr)
 		if err != nil {
-			handleError(w, err, "Internal server error")
+			handleError(w, err, "Bad request", 500)
 			return
 		}
 
 		err = db.DeleteTaskFromDB(idStr)
 		if err != nil {
-			handleError(w, err, "Internal server error")
+			handleError(w, err, "Internal server error", 400)
 			return
 		}
 		w.WriteHeader(http.StatusOK)

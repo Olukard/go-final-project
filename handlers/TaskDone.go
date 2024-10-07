@@ -16,13 +16,13 @@ func TaskDoneHandler(db *db.DB) func(w http.ResponseWriter, r *http.Request) {
 
 		err := ValidateID(idStr)
 		if err != nil {
-			handleError(w, err, "Internal server error")
+			handleError(w, err, "Bad request", 500)
 			return
 		}
 
 		task, err := db.GetTaskFromDB(idStr)
 		if err != nil {
-			handleError(w, err, "Internal server error")
+			handleError(w, err, "Internal server error", 400)
 			return
 		}
 
@@ -34,12 +34,12 @@ func TaskDoneHandler(db *db.DB) func(w http.ResponseWriter, r *http.Request) {
 
 		task.Date, err = NextDate(time.Now(), task.Date, task.Repeat)
 		if err != nil {
-			handleError(w, err, "Internal server error")
+			handleError(w, err, "Internal server error", 400)
 			return
 		}
 
 		if err := db.UpdateTaskInDB(task); err != nil {
-			handleError(w, err, "Internal server error")
+			handleError(w, err, "Internal server error", 400)
 			return
 		}
 		json.NewEncoder(w).Encode(map[string]interface{}{})

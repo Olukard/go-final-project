@@ -124,9 +124,9 @@ func ValdateRepeatRule(repeat string) (err error) {
 	return nil
 }
 
-func handleError(w http.ResponseWriter, err error, msg string) {
+func handleError(w http.ResponseWriter, err error, msg string, statusCode int) {
 	log.Printf("Error: %v", err)
 	response := models.ErrorResponse{Error: msg}
-	w.WriteHeader(http.StatusInternalServerError)
+	w.WriteHeader(statusCode)
 	json.NewEncoder(w).Encode(response)
 }

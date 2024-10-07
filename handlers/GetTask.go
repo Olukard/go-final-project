@@ -16,13 +16,13 @@ func GetTaskHandler(db *db.DB) func(w http.ResponseWriter, r *http.Request) {
 
 		err := ValidateID(idStr)
 		if err != nil {
-			handleError(w, err, "Internal server error")
+			handleError(w, err, "Bad request", 500)
 			return
 		}
 
 		task, err = db.GetTaskFromDB(idStr)
 		if err != nil {
-			handleError(w, err, "Internal server error")
+			handleError(w, err, "Internal server error", 400)
 			return
 		}
 

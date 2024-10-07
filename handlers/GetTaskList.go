@@ -12,7 +12,7 @@ func GetTasksListHandler(db *db.DB) func(w http.ResponseWriter, r *http.Request)
 
 		tasks, err := db.GetListFromDB()
 		if err != nil {
-			handleError(w, err, "Internal server error")
+			handleError(w, err, "Internal server error", 400)
 			return
 		}
 
